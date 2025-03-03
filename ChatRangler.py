@@ -7,15 +7,18 @@ import pygame as pg
 import vgamepad as vg
 import TwitchPlays_Connection
 import InputMapping
+import StoredMappings
+import ChatCommands
 import threading
 import queue
 import time
 import random
 from copy import deepcopy
 
-# Defualt stuff to prevent the need to set it everytime you run the code
-DEFUALT_TWITCH_CHANNEL = "phoenixbros" # the channel that it will automatically attempt to join on start up, leave as "" to start unconnected
+# Default stuff to prevent the need to set it everytime you run the code
+DEFAULT_TWITCH_CHANNEL = "" # the channel that it will automatically attempt to join on start up, leave as "" to start unconnected
 CONTROLLER_AUTO_CONNECTS = ["PS4 Controller", ] # the kinds of controllers that you want to automatically use as the active controller if no active is already set
+DEFAULT_CHAT_COMMANDS = "simple" # the chat commands profile to initilize with
 
 # how the inputs are combined
 # note for dicriminatory instances chat should always be first and player second i.e lambda c,p : p only listen to player input
@@ -36,7 +39,6 @@ joyce = None
 joyce_mapping = None
 for event in pg.event.get():
     if event.type == pg.JOYDEVICEADDED:
-        print(event)
         joy = pg.joystick.Joystick(event.device_index)
         joysticks.append(joy)
         if joyce == None and joy.get_name() in CONTROLLER_AUTO_CONNECTS:
@@ -133,7 +135,7 @@ def reset_hybrid():
 # twitch socket
 Twitch = TwitchPlays_Connection.Twitch()
 chat_active = False
-
+active_chat_profile = ChatCommands.get_command_profile(DEFAULT_CHAT_COMMANDS)
 def connect_to_channel(channel:str):
     if Twitch.sock:
         Twitch.disconnect()
@@ -178,8 +180,8 @@ chat_processor = threading.Thread(target=chat_processing_event_queue, daemon=Tru
 chat_processor.start()     
 
 
-if DEFUALT_TWITCH_CHANNEL != "":
-    connect_to_channel(DEFUALT_TWITCH_CHANNEL)
+if DEFAULT_TWITCH_CHANNEL != "":
+    connect_to_channel(DEFAULT_TWITCH_CHANNEL)
         
         
 # chat message recieving
@@ -207,8 +209,8 @@ def twitch_chat_events_listener():
             # loop through all the messages recieved from chat
             if chat_active:
                 for msg in messages:
-                    if msg['message'].lower() in InputMapping.active_commands.keys():
-                        chat_event_queue.put(deepcopy(InputMapping.active_commands[msg['message'].lower()])) #TODO dont use deepcopy (slow). change how delay is stored to allow for delay to pass by value
+                    if msg['message'].lower() in active_chat_profile.keys():
+                        chat_event_queue.put(deepcopy(active_chat_profile[msg['message'].lower()]))
         else:
             # check and report the changed state of the connecetion
             if active == True:
@@ -227,11 +229,11 @@ twitch_listener.start()
 rando_active = False
 rando_event = pg.event.custom_type()
 def rando():
-    avalable_commands = list(InputMapping.active_commands.keys())
+    avalable_commands = list(StoredMappings.active_commands.keys())
     while rando_active:
         if chat_active:
             time.sleep(.1)
-            chat_event_queue.put(deepcopy(InputMapping.active_commands[random.choice(avalable_commands)]))
+            chat_event_queue.put(deepcopy(StoredMappings.active_commands[random.choice(avalable_commands)]))
         
     print("Rando has died D:")
 
@@ -242,18 +244,18 @@ rando_thread = threading.Thread(target=rando, daemon=True)
 #------------------------
 # all command info tips
 info_dict = {'con connect':"lets you choose the active controller", 'con mapping':"lets you select a mapping for the active controller", 'con check':"checks the status of all connected controllers", 'mapping check':"checks the active controllers mapping", 
-             'chat connect':"lets you connect to a twitch chat by inputing the channel name", 'chat disconnect':"disconnects from the active chat", 'chat':f"any command that is legal can be typed in the command line and executed like a normal chat message.\n(note: only works when started)\n here are the current avalable commands\n {list(InputMapping.active_commands.keys())}", 
+             'chat connect':"lets you connect to a twitch chat by inputing the channel name", 'chat disconnect':"disconnects from the active chat",'chat profile':"allows the change of the chat commands profile", 'chat':f"any command that is legal can be typed in the command line and executed like a normal chat message.\n(note: only works when started)\n here are the current avalable commands\n {list(active_chat_profile.keys())}", 
              'start':"starts the sytsem listening to all chat messages, this includes rando and cmd messages", 'stop':"stop the system from listening to messages",
              'rando start':"starts randomly sending valid chat messages (note: only works when started)", 'rando stop':"",
              'help':"this is what you just typed\n this gives hints about each of the commands", 'quit':"this exits the program gracefully"}
 # command line input processor
 def debugger_chat():
-    global run, joyce, joyce_mapping, chat_active, rando_active
+    global run, joyce, joyce_mapping, chat_active, rando_active, active_chat_profile
     while run:
         msg = input().lower()
         
         if msg == "list":
-            print("Avalable commands are:\n#### Controller commands ####\n- con connect\n- con mapping\n- con check\n- mapping check\n#### Twitch chat commands ####\n- chat connect\n- chat disconnect\n- All valid chat commands (hints:'help chat')\n#### System commands ####\n- start\n- stop\n- help [command]\n- quit")
+            print("Avalable commands are:\n#### Controller commands ####\n- con connect\n- con mapping\n- con check\n- mapping check\n#### Twitch chat commands ####\n- chat connect\n- chat disconnect\n- chat profile\n- All valid chat commands (hints:'help chat')\n#### System commands ####\n- start\n- stop\n- help [command]\n- quit")
         
         # ---- controller block ----
         # sets the active controller
@@ -284,10 +286,10 @@ def debugger_chat():
         # sets the controller mapping in use
         if msg == "con mapping":
             if joyce != None:
-                print("avalable controller mappings are:", list(InputMapping.controller_mappings.keys()))
+                print("avalable controller mappings are:", list(StoredMappings.controller_mappings.keys()))
                 map_name = input("what mapping would you like to select\n>")
-                if map_name in InputMapping.controller_mappings.keys():
-                    joyce_mapping = InputMapping.controller_mappings[map_name]
+                if map_name in StoredMappings.controller_mappings.keys():
+                    joyce_mapping = StoredMappings.controller_mappings[map_name]
                 else:
                     print("sorry that is not the name of a known mapping")
             else:
@@ -327,9 +329,9 @@ def debugger_chat():
             print("chat has stopped")
         
         # runs msg like a chat message
-        if msg in InputMapping.active_commands.keys():
+        if msg in active_chat_profile.keys():
             if chat_active:
-                chat_event_queue.put(deepcopy(InputMapping.active_commands[msg]))
+                chat_event_queue.put(deepcopy(active_chat_profile[msg]))
             else:
                 print("until start is typed chat commands do nothing")
             
@@ -341,6 +343,12 @@ def debugger_chat():
         # disconnects twitch socket
         if msg == 'chat disconnect':
             Twitch.disconnect()
+            
+        # change chat profile
+        if msg == 'chat profile':
+            print("avalable chat profiles:", list(ChatCommands.chat_command_profiles.keys()))
+            prof = input("type the name of the profile you wish to use\n>")
+            active_chat_profile = ChatCommands.get_command_profile(prof)
         
         # ---- rando ----
         # start random message spam
