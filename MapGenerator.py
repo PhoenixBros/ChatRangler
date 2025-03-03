@@ -1,4 +1,4 @@
-from StoredMappings import conversions
+from StoredMappings import get_avalable_conversions
 import pygame as pg
 import time
 from copy import deepcopy
@@ -32,30 +32,29 @@ print("list of this controllers inputs:\n",WIP_map_inputs)
 
 
 print("please press a button or move a stick on the controller you selected")
-
 xbox_options = {
-    'a': "~xbox_valid_inputs.A~",
-    'b': "~xbox_valid_inputs.B~",
-    'x': "~xbox_valid_inputs.X~",
-    'y': "~xbox_valid_inputs.Y~",
-    'back': "~xbox_valid_inputs.BACK~",
-    'start': "~xbox_valid_inputs.START~",
-    'guide': "~xbox_valid_inputs.GUIDE~",
-    'dpad u': "~xbox_valid_inputs.DPAD_UP~",
-    'dpad d': "~xbox_valid_inputs.DPAD_DOWN~",
-    'dpad l': "~xbox_valid_inputs.DPAD_LEFT~",
-    'dpad r': "~xbox_valid_inputs.DPAD_RIGHT~",
-    'l bumper': "~xbox_valid_inputs.BUMPER_LEFT~",
-    'r bumper': "~xbox_valid_inputs.BUMPER_RIGHT~",
-    'l thumb': "~xbox_valid_inputs.THUMB_LEFT~",
-    'r thumb': "~xbox_valid_inputs.THUMB_RIGHT~",
+    'a': ["~xbox_valid_inputs.A~", bool],
+    'b': ["~xbox_valid_inputs.B~", bool],
+    'x': ["~xbox_valid_inputs.X~", bool],
+    'y': ["~xbox_valid_inputs.Y~", bool],
+    'back': ["~xbox_valid_inputs.BACK~", bool],
+    'start': ["~xbox_valid_inputs.START~", bool],
+    'guide': ["~xbox_valid_inputs.GUIDE~", bool],
+    'dpad u': ["~xbox_valid_inputs.DPAD_UP~", bool],
+    'dpad d': ["~xbox_valid_inputs.DPAD_DOWN~", bool],
+    'dpad l': ["~xbox_valid_inputs.DPAD_LEFT~", bool],
+    'dpad r': ["~xbox_valid_inputs.DPAD_RIGHT~", bool],
+    'l bumper': ["~xbox_valid_inputs.BUMPER_LEFT~", bool],
+    'r bumper': ["~xbox_valid_inputs.BUMPER_RIGHT~", bool],
+    'l thumb': ["~xbox_valid_inputs.THUMB_LEFT~", bool],
+    'r thumb': ["~xbox_valid_inputs.THUMB_RIGHT~", bool],
     
-    'l stick x': "~xbox_valid_inputs.STICK_LEFT_X~",
-    'l stick y': "~xbox_valid_inputs.STICK_LEFT_Y~",
-    'r stick x': "~xbox_valid_inputs.STICK_RIGHT_X~",
-    'r stick y': "~xbox_valid_inputs.STICK_RIGHT_Y~",
-    'l trigger': "~xbox_valid_inputs.TRIGGER_LEFT~",
-    'r trigger': "~xbox_valid_inputs.TRIGGER_RIGHT~",
+    'l stick x': ["~xbox_valid_inputs.STICK_LEFT_X~", float],
+    'l stick y': ["~xbox_valid_inputs.STICK_LEFT_Y~", float],
+    'r stick x': ["~xbox_valid_inputs.STICK_RIGHT_X~", float],
+    'r stick y': ["~xbox_valid_inputs.STICK_RIGHT_Y~", float],
+    'l trigger': ["~xbox_valid_inputs.TRIGGER_LEFT~", float],
+    'r trigger': ["~xbox_valid_inputs.TRIGGER_RIGHT~", float],
 }
 current_selection = None
 answer = ""
@@ -69,10 +68,10 @@ while answer != "done":
                 current_selection = ["AXIS", event.axis, float]
         elif event.type == pg.JOYHATMOTION and event.instance_id == joyce.get_instance_id():
             print(event)
-            current_selection = ["HAT", event.hat, ]
+            current_selection = ["HAT", event.hat, float]
         elif event.type == pg.JOYBALLMOTION and event.instance_id == joyce.get_instance_id():
             print(event)
-            current_selection = ["BALL", event.value] # i dont have access to a ball type input so this is based on the documentation and has not been tested
+            current_selection = ["BALL", event.value, float] # i dont have access to a ball type input so figure its out yourself
             
     if current_selection != None:
         print("please type the input you would like to map", current_selection, "to\n avalable options are:", list(xbox_options.keys()))
@@ -81,11 +80,11 @@ while answer != "done":
         xboxkey = xbox_options[answer]
         
         answer = ''
-        print("choose a convertion: ", list(conversions.keys()))
-        while answer not in conversions.keys():
+        print("choose a convertion: ", get_avalable_conversions(current_selection[2], xboxkey[1]))
+        while answer not in get_avalable_conversions(current_selection[2], xboxkey[1]):
             answer = input('> ')
             
-        WIP_map_inputs[current_selection[0]][current_selection[1]] = {'input':xboxkey, 'convert':f"~conversions['{answer}']~"}
+        WIP_map_inputs[current_selection[0]][current_selection[1]] = {'input':xboxkey[0], 'convert':f"~conversions['{answer}']~"}
         
         print("current input map:", WIP_map_inputs)
         answer = input("\nwould you like to keep mapping? if not type 'done'\n> ")
@@ -108,7 +107,6 @@ new_mapping = str(WIP_map_inputs)
 
 search = new_mapping.split('~')
 for splits in range(len(search))[1::2]:
-    print(splits)
     search[splits-1] = search[splits-1][:-1]
     search[splits+1] = search[splits+1][1:]
 new_mapping = "".join(search)
