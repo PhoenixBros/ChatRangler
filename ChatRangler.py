@@ -15,7 +15,7 @@ import random
 from copy import deepcopy
 
 # Default stuff to prevent the need to set it everytime you run the code
-DEFAULT_TWITCH_CHANNEL = "phoenixbros" # the channel that it will automatically attempt to join on start up, leave as "" to start unconnected
+DEFAULT_TWITCH_CHANNEL = "" # the channel that it will automatically attempt to join on start up, leave as "" to start unconnected
 CONTROLLER_AUTO_CONNECTS = ["PS4 Controller", ] # the kinds of controllers that you want to automatically use as the active controller if no active is already set
 DEFAULT_CHAT_COMMANDS = "simple" # the chat commands profile to initilize with
 
@@ -134,7 +134,7 @@ def reset_hybrid():
 # twitch socket
 Twitch = TwitchPlays_Connection.Twitch()
 chat_active = False
-active_commands = ChatCommands.get_commands(DEFAULT_CHAT_COMMANDS)
+active_chat_profile = ChatCommands.get_command_profile(DEFAULT_CHAT_COMMANDS)
 def connect_to_channel(channel:str):
     if Twitch.sock:
         Twitch.disconnect()
@@ -243,18 +243,18 @@ rando_thread = threading.Thread(target=rando, daemon=True)
 #------------------------
 # all command info tips
 info_dict = {'con connect':"lets you choose the active controller", 'con mapping':"lets you select a mapping for the active controller", 'con check':"checks the status of all connected controllers", 'mapping check':"checks the active controllers mapping", 
-             'chat connect':"lets you connect to a twitch chat by inputing the channel name", 'chat disconnect':"disconnects from the active chat", 'chat':f"any command that is legal can be typed in the command line and executed like a normal chat message.\n(note: only works when started)\n here are the current avalable commands\n {list(InputMapping.active_commands.keys())}", 
+             'chat connect':"lets you connect to a twitch chat by inputing the channel name", 'chat disconnect':"disconnects from the active chat",'chat profile':"allows the change of the chat commands profile", 'chat':f"any command that is legal can be typed in the command line and executed like a normal chat message.\n(note: only works when started)\n here are the current avalable commands\n {list(active_chat_profile.keys())}", 
              'start':"starts the sytsem listening to all chat messages, this includes rando and cmd messages", 'stop':"stop the system from listening to messages",
              'rando start':"starts randomly sending valid chat messages (note: only works when started)", 'rando stop':"",
              'help':"this is what you just typed\n this gives hints about each of the commands", 'quit':"this exits the program gracefully"}
 # command line input processor
 def debugger_chat():
-    global run, joyce, joyce_mapping, chat_active, rando_active
+    global run, joyce, joyce_mapping, chat_active, rando_active, active_chat_profile
     while run:
         msg = input().lower()
         
         if msg == "list":
-            print("Avalable commands are:\n#### Controller commands ####\n- con connect\n- con mapping\n- con check\n- mapping check\n#### Twitch chat commands ####\n- chat connect\n- chat disconnect\n- All valid chat commands (hints:'help chat')\n#### System commands ####\n- start\n- stop\n- help [command]\n- quit")
+            print("Avalable commands are:\n#### Controller commands ####\n- con connect\n- con mapping\n- con check\n- mapping check\n#### Twitch chat commands ####\n- chat connect\n- chat disconnect\n- chat profile\n- All valid chat commands (hints:'help chat')\n#### System commands ####\n- start\n- stop\n- help [command]\n- quit")
         
         # ---- controller block ----
         # sets the active controller
@@ -328,9 +328,9 @@ def debugger_chat():
             print("chat has stopped")
         
         # runs msg like a chat message
-        if msg in InputMapping.active_commands.keys():
+        if msg in active_chat_profile.keys():
             if chat_active:
-                chat_event_queue.put(deepcopy(InputMapping.active_commands[msg]))
+                chat_event_queue.put(deepcopy(active_chat_profile[msg]))
             else:
                 print("until start is typed chat commands do nothing")
             
@@ -342,6 +342,12 @@ def debugger_chat():
         # disconnects twitch socket
         if msg == 'chat disconnect':
             Twitch.disconnect()
+            
+        # change chat profile
+        if msg == 'chat profile':
+            print("avalable chat profiles:", list(ChatCommands.chat_command_profiles.keys()))
+            prof = input("type the name of the profile you wish to use\n>")
+            active_chat_profile = ChatCommands.get_command_profile(prof)
         
         # ---- rando ----
         # start random message spam

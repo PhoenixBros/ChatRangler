@@ -109,9 +109,9 @@ ps4Map = {
     
     'AXIS': {
         0: {'input': xbox_valid_inputs.STICK_LEFT_X, "value":conversions['pass']},
-        1: {'input': xbox_valid_inputs.STICK_LEFT_Y, "value":conversions['axis flip']},
+        1: {'input': xbox_valid_inputs.STICK_LEFT_Y, "value":conversions['axis invert']},
         2: {'input': xbox_valid_inputs.STICK_RIGHT_X, "value":conversions['pass']},
-        3: {'input': xbox_valid_inputs.STICK_RIGHT_Y, "value":conversions['axis flip']},
+        3: {'input': xbox_valid_inputs.STICK_RIGHT_Y, "value":conversions['axis invert']},
             
         4: {'input': xbox_valid_inputs.TRIGGER_LEFT, "value":conversions['pass']},
         5: {'input': xbox_valid_inputs.TRIGGER_RIGHT, "value":conversions['pass']}
