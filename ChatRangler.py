@@ -7,6 +7,7 @@ import pygame as pg
 import vgamepad as vg
 import TwitchPlays_Connection
 import InputMapping
+import StoredMappings
 import ChatCommands
 import threading
 import queue
@@ -208,8 +209,8 @@ def twitch_chat_events_listener():
             # loop through all the messages recieved from chat
             if chat_active:
                 for msg in messages:
-                    if msg['message'].lower() in InputMapping.active_commands.keys():
-                        chat_event_queue.put(deepcopy(InputMapping.active_commands[msg['message'].lower()])) #TODO dont use deepcopy (slow). change how delay is stored to allow for delay to pass by value
+                    if msg['message'].lower() in active_chat_profile.keys():
+                        chat_event_queue.put(deepcopy(active_chat_profile[msg['message'].lower()]))
         else:
             # check and report the changed state of the connecetion
             if active == True:
@@ -228,11 +229,11 @@ twitch_listener.start()
 rando_active = False
 rando_event = pg.event.custom_type()
 def rando():
-    avalable_commands = list(InputMapping.active_commands.keys())
+    avalable_commands = list(StoredMappings.active_commands.keys())
     while rando_active:
         if chat_active:
             time.sleep(.1)
-            chat_event_queue.put(deepcopy(InputMapping.active_commands[random.choice(avalable_commands)]))
+            chat_event_queue.put(deepcopy(StoredMappings.active_commands[random.choice(avalable_commands)]))
         
     print("Rando has died D:")
 
@@ -285,10 +286,10 @@ def debugger_chat():
         # sets the controller mapping in use
         if msg == "con mapping":
             if joyce != None:
-                print("avalable controller mappings are:", list(InputMapping.controller_mappings.keys()))
+                print("avalable controller mappings are:", list(StoredMappings.controller_mappings.keys()))
                 map_name = input("what mapping would you like to select\n>")
-                if map_name in InputMapping.controller_mappings.keys():
-                    joyce_mapping = InputMapping.controller_mappings[map_name]
+                if map_name in StoredMappings.controller_mappings.keys():
+                    joyce_mapping = StoredMappings.controller_mappings[map_name]
                 else:
                     print("sorry that is not the name of a known mapping")
             else:

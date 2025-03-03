@@ -1,4 +1,4 @@
-from InputMapping import xbox_valid_inputs as x_inputs
+from StoredMappings import xbox_valid_inputs as x_inputs
 # store varius chat command lists here
 
 # command dictionary format 'the command chat types': [a list of inputs performed on delays]

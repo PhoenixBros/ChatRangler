@@ -1,5 +1,4 @@
-from InputMapping import xbox_valid_inputs as xbox
-from InputMapping import conversions
+from StoredMappings import conversions
 import pygame as pg
 import time
 from copy import deepcopy
@@ -22,56 +21,56 @@ while not answer.isdigit() or not (int(answer) in indexed_joys.keys()):
 
 joyce = joysticks[int(answer)]
 
-unmapped_inputs = {
+WIP_map_inputs = {
     'BUTTON':{i:None for i in range(joyce.get_numbuttons())},
     'AXIS':{i:None for i in range(joyce.get_numaxes())},
     'HAT':{i:None for i in range(joyce.get_numhats())},
     'BALL':{i:None for i in range(joyce.get_numballs())},
 }
 
-print("list of this controllers inputs:\n",unmapped_inputs)
+print("list of this controllers inputs:\n",WIP_map_inputs)
 
 
 print("please press a button or move a stick on the controller you selected")
 
 xbox_options = {
-    'a': xbox.A,
-    'b': xbox.B,
-    'x': xbox.X,
-    'y': xbox.Y,
-    'back': xbox.BACK,
-    'start': xbox.START,
-    'guide': xbox.GUIDE,
-    'dpad u': xbox.DPAD_UP,
-    'dpad d': xbox.DPAD_DOWN,
-    'dpad l': xbox.DPAD_LEFT,
-    'dpad r': xbox.DPAD_RIGHT,
-    'l bumper': xbox.BUMPER_LEFT,
-    'r bumper': xbox.BUMPER_RIGHT,
-    'l thumb': xbox.THUMB_LEFT,
-    'r thumb': xbox.THUMB_RIGHT,
+    'a': "~xbox_valid_inputs.A~",
+    'b': "~xbox_valid_inputs.B~",
+    'x': "~xbox_valid_inputs.X~",
+    'y': "~xbox_valid_inputs.Y~",
+    'back': "~xbox_valid_inputs.BACK~",
+    'start': "~xbox_valid_inputs.START~",
+    'guide': "~xbox_valid_inputs.GUIDE~",
+    'dpad u': "~xbox_valid_inputs.DPAD_UP~",
+    'dpad d': "~xbox_valid_inputs.DPAD_DOWN~",
+    'dpad l': "~xbox_valid_inputs.DPAD_LEFT~",
+    'dpad r': "~xbox_valid_inputs.DPAD_RIGHT~",
+    'l bumper': "~xbox_valid_inputs.BUMPER_LEFT~",
+    'r bumper': "~xbox_valid_inputs.BUMPER_RIGHT~",
+    'l thumb': "~xbox_valid_inputs.THUMB_LEFT~",
+    'r thumb': "~xbox_valid_inputs.THUMB_RIGHT~",
     
-    'l stick x': xbox.STICK_LEFT_X,
-    'l stick y': xbox.STICK_LEFT_Y,
-    'r stick x': xbox.STICK_RIGHT_X,
-    'r stick y': xbox.STICK_RIGHT_Y,
-    'l trigger': xbox.TRIGGER_LEFT,
-    'r trigger': xbox.TRIGGER_RIGHT,
+    'l stick x': "~xbox_valid_inputs.STICK_LEFT_X~",
+    'l stick y': "~xbox_valid_inputs.STICK_LEFT_Y~",
+    'r stick x': "~xbox_valid_inputs.STICK_RIGHT_X~",
+    'r stick y': "~xbox_valid_inputs.STICK_RIGHT_Y~",
+    'l trigger': "~xbox_valid_inputs.TRIGGER_LEFT~",
+    'r trigger': "~xbox_valid_inputs.TRIGGER_RIGHT~",
 }
 current_selection = None
 answer = ""
-while answer != "quit":
+while answer != "done":
     answer = ""
     for event in pg.event.get():
-        if event.type == pg.JOYBUTTONDOWN:
+        if event.type == pg.JOYBUTTONDOWN and event.instance_id == joyce.get_instance_id():
             current_selection = ["BUTTON", event.button, bool]
-        elif event.type == pg.JOYAXISMOTION:
+        elif event.type == pg.JOYAXISMOTION and event.instance_id == joyce.get_instance_id():
             if abs(event.value) > .5:
                 current_selection = ["AXIS", event.axis, float]
-        elif event.type == pg.JOYHATMOTION:
+        elif event.type == pg.JOYHATMOTION and event.instance_id == joyce.get_instance_id():
             print(event)
             current_selection = ["HAT", event.hat, ]
-        elif event.type == pg.JOYBALLMOTION:
+        elif event.type == pg.JOYBALLMOTION and event.instance_id == joyce.get_instance_id():
             print(event)
             current_selection = ["BALL", event.value] # i dont have access to a ball type input so this is based on the documentation and has not been tested
             
@@ -86,16 +85,61 @@ while answer != "quit":
         while answer not in conversions.keys():
             answer = input('> ')
             
-        unmapped_inputs[current_selection[0]][5] = {'input':xboxkey, 'convert':f"conversions[{answer}]"}
+        WIP_map_inputs[current_selection[0]][current_selection[1]] = {'input':xboxkey, 'convert':f"~conversions['{answer}']~"}
         
-        print("\n\n\n\ncurrent input map:", unmapped_inputs)
-        answer = input("would you like to keep mapping? if not type quit\n> ")
+        print("current input map:", WIP_map_inputs)
+        answer = input("\nwould you like to keep mapping? if not type 'done'\n> ")
+
+        current_selection = None
+        for event in pg.event.get(): pass # ignore all the inputs pressed while sellecting mapping
+        if answer != "done":
+            print("press any button on your controller now")
 
 
-input_guide = deepcopy(unmapped_inputs)
+input_guide = deepcopy(WIP_map_inputs)
+#removes all controllers non set inputs
 for key in input_guide.keys():
     for index in input_guide[key].keys():
         if input_guide[key][index] == None:
-            unmapped_inputs[key].pop(index)
-print(unmapped_inputs)
+            WIP_map_inputs[key].pop(index)
+            
+#convert to copyable string and remove all incorrect quotes    
+new_mapping = str(WIP_map_inputs)
+
+search = new_mapping.split('~')
+for splits in range(len(search))[1::2]:
+    print(splits)
+    search[splits-1] = search[splits-1][:-1]
+    search[splits+1] = search[splits+1][1:]
+new_mapping = "".join(search)
+
+answer = ' '
+while (answer[0].isdigit() or not answer.replace('_', '').isalnum()):
+    answer = input("please add a name for the mapping\nthe name can only contain alpha numerical charactors and '_'. all numbers must come after the first charactor\n>")
+    
+# combine to creat the mapping line
+new_mapping = answer + " = " + new_mapping
+
+
+# inserts the new mapping into the python file
+do_auto_insert = input("\ntype \"yes\" if you would you like to have this map automatically added to the existing input mappings\n> ")
+if do_auto_insert == "yes":
+    import os
+    file_location = os.getcwd()+"\\StoredMappings.py"
+    # make sure this is run form inside the chatrangler directory
+    
+    # get the current file contents
+    with open(file_location, 'r') as input_mapping_file:
+        file_contents = input_mapping_file.read()
+        input_mapping_file.close()
+    file_contents = file_contents.split("|~>") # find the insertion points
+    
+    # insert the new map
+    file_contents.insert(2, f"|~>\n    \"{answer.replace('_', ' ')}\":{answer},")
+    file_contents.insert(1, f"|~>\n{new_mapping}")
+        
+    # save the file
+    with open(file_location, 'w') as input_mapping_file:
+        input_mapping_file.write("".join(file_contents))
+        input_mapping_file.close()
         
