@@ -2,6 +2,7 @@ from InputMapping import xbox_valid_inputs as xbox
 from InputMapping import conversions
 import pygame as pg
 import time
+from copy import deepcopy
 pg.init()
 
 joyce = None
@@ -85,7 +86,16 @@ while answer != "quit":
         while answer not in conversions.keys():
             answer = input('> ')
             
-        unmapped_inputs[current_selection[0]][5] = {'input':xboxkey, 'convert':conversions[answer]}
-        print("current input map:", unmapped_inputs)
+        unmapped_inputs[current_selection[0]][5] = {'input':xboxkey, 'convert':f"conversions[{answer}]"}
+        
+        print("\n\n\n\ncurrent input map:", unmapped_inputs)
         answer = input("would you like to keep mapping? if not type quit\n> ")
+
+
+input_guide = deepcopy(unmapped_inputs)
+for key in input_guide.keys():
+    for index in input_guide[key].keys():
+        if input_guide[key][index] == None:
+            unmapped_inputs[key].pop(index)
+print(unmapped_inputs)
         
