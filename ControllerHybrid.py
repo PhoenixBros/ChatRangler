@@ -7,15 +7,17 @@ import pygame as pg
 import vgamepad as vg
 import TwitchPlays_Connection
 import InputMapping
+import ChatCommands
 import threading
 import queue
 import time
 import random
 from copy import deepcopy
 
-# Defualt stuff to prevent the need to set it everytime you run the code
-DEFUALT_TWITCH_CHANNEL = "phoenixbros" # the channel that it will automatically attempt to join on start up, leave as "" to start unconnected
+# Default stuff to prevent the need to set it everytime you run the code
+DEFAULT_TWITCH_CHANNEL = "phoenixbros" # the channel that it will automatically attempt to join on start up, leave as "" to start unconnected
 CONTROLLER_AUTO_CONNECTS = ["PS4 Controller", ] # the kinds of controllers that you want to automatically use as the active controller if no active is already set
+DEFAULT_CHAT_COMMANDS = "simple" # the chat commands profile to initilize with
 
 # how the inputs are combined
 # note for dicriminatory instances chat should always be first and player second i.e lambda c,p : p only listen to player input
@@ -36,7 +38,6 @@ joyce = None
 joyce_mapping = None
 for event in pg.event.get():
     if event.type == pg.JOYDEVICEADDED:
-        print(event)
         joy = pg.joystick.Joystick(event.device_index)
         joysticks.append(joy)
         if joyce == None and joy.get_name() in CONTROLLER_AUTO_CONNECTS:
@@ -133,7 +134,7 @@ def reset_hybrid():
 # twitch socket
 Twitch = TwitchPlays_Connection.Twitch()
 chat_active = False
-
+active_commands = ChatCommands.get_commands(DEFAULT_CHAT_COMMANDS)
 def connect_to_channel(channel:str):
     if Twitch.sock:
         Twitch.disconnect()
@@ -178,8 +179,8 @@ chat_processor = threading.Thread(target=chat_processing_event_queue, daemon=Tru
 chat_processor.start()     
 
 
-if DEFUALT_TWITCH_CHANNEL != "":
-    connect_to_channel(DEFUALT_TWITCH_CHANNEL)
+if DEFAULT_TWITCH_CHANNEL != "":
+    connect_to_channel(DEFAULT_TWITCH_CHANNEL)
         
         
 # chat message recieving

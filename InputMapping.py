@@ -56,12 +56,14 @@ def apply_value_mapping(mapping, type, id, value):
     else:
         return None
 
+# a small list of possible convertions between input types
 conversions = {
     "pass": lambda x : x,
+    "squash": lambda x : (x+1)/2,
     "button to +axis": lambda x : 1.0 if x else 0.0,
     "button to -axis": lambda x : -1.0 if x else 0.0,
     "axis to button": lambda x : True if x > .5 else False,
-    "axis flip": lambda x : -x,
+    "axis invert": lambda x : -x,
 }
 
 
@@ -129,60 +131,3 @@ def get_mapping(map_name) -> dict:
     else:
         return emptymap
 
-
-
-# the commands twitch chat actually writes
-simple_chat_commands = {
-    'a':[{'input':xbox_valid_inputs.A, 'value':True, 'delay':0},
-        {'input':xbox_valid_inputs.A, 'value':False, 'delay':.1}],
-    'b':[{'input':xbox_valid_inputs.B,  'value':True, 'delay':0},
-        {'input':xbox_valid_inputs.B, 'value':False, 'delay':.1}],
-    'x':[{'input':xbox_valid_inputs.X, 'value':True, 'delay':0},
-        {'input':xbox_valid_inputs.X, 'value':False, 'delay':.1}],
-    'y':[{'input':xbox_valid_inputs.Y, 'value':True, 'delay':0},
-        {'input':xbox_valid_inputs.Y, 'value':False, 'delay':.1}],
-    
-    'dpad up':[{'input':xbox_valid_inputs.DPAD_UP, 'value':True, 'delay':0},
-               {'input':xbox_valid_inputs.DPAD_UP, 'value':False, 'delay':.1}],
-    'dpad down':[{'input':xbox_valid_inputs.DPAD_DOWN, 'value':True, 'delay':0},
-                 {'input':xbox_valid_inputs.DPAD_DOWN, 'value':False, 'delay':.1}],
-    'dpad left':[{'input':xbox_valid_inputs.DPAD_LEFT, 'value':True, 'delay':0}, 
-                 {'input':xbox_valid_inputs.DPAD_LEFT, 'value':False, 'delay':.1}],
-    'dpad right':[{'input':xbox_valid_inputs.DPAD_RIGHT, 'value':True, 'delay':0},
-                  {'input':xbox_valid_inputs.DPAD_RIGHT, 'value':False, 'delay':.1}],
-    
-    'l1':[{'input':xbox_valid_inputs.BUMPER_LEFT, 'value':True, 'delay':0},
-        {'input':xbox_valid_inputs.BUMPER_LEFT, 'value':False, 'delay':.1}],
-    'l2':[{'input':xbox_valid_inputs.TRIGGER_LEFT, 'value':1.0, 'delay':0},
-        {'input':xbox_valid_inputs.TRIGGER_LEFT, 'value':-1.0, 'delay':.1}],
-    'l3':[{'input':xbox_valid_inputs.THUMB_LEFT, 'value':True, 'delay':0},
-        {'input':xbox_valid_inputs.THUMB_LEFT, 'value':False, 'delay':.1}],
-    
-    'r1':[{'input':xbox_valid_inputs.BUMPER_RIGHT, 'value':True, 'delay':0},
-        {'input':xbox_valid_inputs.BUMPER_RIGHT, 'value':False, 'delay':.1}],
-    'r2':[{'input':xbox_valid_inputs.TRIGGER_RIGHT, 'value':1.0, 'delay':0},
-        {'input':xbox_valid_inputs.TRIGGER_RIGHT, 'value':-1.0, 'delay':.1}],
-    'r3':[{'input':xbox_valid_inputs.THUMB_RIGHT, 'value':True, 'delay':0},
-        {'input':xbox_valid_inputs.THUMB_RIGHT, 'value':False, 'delay':.1}],
-    
-    'up':[{'input':xbox_valid_inputs.STICK_LEFT_Y, 'value':1.0, 'delay':0},
-        {'input':xbox_valid_inputs.STICK_LEFT_Y, 'value':0.0, 'delay':.5}],
-    'down':[{'input':xbox_valid_inputs.STICK_LEFT_Y, 'value':-1.0, 'delay':0},
-        {'input':xbox_valid_inputs.STICK_LEFT_Y, 'value':0.0, 'delay':.5}],
-    'left':[{'input':xbox_valid_inputs.STICK_LEFT_X, 'value':-1.0, 'delay':0},
-        {'input':xbox_valid_inputs.STICK_LEFT_X, 'value':0.0, 'delay':.5}],
-    'right':[{'input':xbox_valid_inputs.STICK_LEFT_X, 'value':1.0, 'delay':0},
-        {'input':xbox_valid_inputs.STICK_LEFT_X, 'value':0.0, 'delay':.5}],
-    
-    'c up':[{'input':xbox_valid_inputs.STICK_RIGHT_Y, 'value':1.0, 'delay':0},
-        {'input':xbox_valid_inputs.STICK_RIGHT_Y, 'value':0.0, 'delay':.5}],
-    'c down':[{'input':xbox_valid_inputs.STICK_RIGHT_Y, 'value':-1.0, 'delay':0},
-        {'input':xbox_valid_inputs.STICK_RIGHT_Y, 'value':0.0, 'delay':.5}],
-    'c left':[{'input':xbox_valid_inputs.STICK_RIGHT_X, 'value':-1.0, 'delay':0},
-        {'input':xbox_valid_inputs.STICK_RIGHT_X, 'value':0.0, 'delay':.5}],
-    'c right':[{'input':xbox_valid_inputs.STICK_RIGHT_X, 'value':1.0, 'delay':0},
-        {'input':xbox_valid_inputs.STICK_RIGHT_X, 'value':0.0, 'delay':5.}],
-}
-
-
-active_commands = simple_chat_commands
