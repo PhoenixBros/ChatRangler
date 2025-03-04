@@ -356,7 +356,7 @@ def debugger_chat():
             if not chat_active:
                 print("rando will not do anything until start is run")
             rando_active = True
-            if not rando_thread.is_alive:
+            if not rando_thread.is_alive():
                 rando_thread.start()
             print("Rando has started. run for your lives")
             
