@@ -138,7 +138,7 @@ chat_active = False
 active_chat_profile = ChatCommands.get_command_profile(DEFAULT_CHAT_COMMANDS)
 def connect_to_channel(channel:str):
     if Twitch.sock:
-        Twitch.disconnect()
+        Twitch.sock = None
     try:
         Twitch.twitch_connect(channel)
         Twitch.receive_and_parse_data()
@@ -218,7 +218,7 @@ def twitch_chat_events_listener():
                     pg.event.post(pg.event.Event(connection_event, {'state':"chat disconnected"}))
                 active = False
     if Twitch.sock:
-        Twitch.disconnect()
+        Twitch.sock = None
 
 twitch_listener = threading.Thread(target=twitch_chat_events_listener, daemon=True)
 twitch_listener.start()
@@ -342,7 +342,7 @@ def debugger_chat():
         
         # disconnects twitch socket
         if msg == 'chat disconnect':
-            Twitch.disconnect()
+            Twitch.sock = None
             
         # change chat profile
         if msg == 'chat profile':
