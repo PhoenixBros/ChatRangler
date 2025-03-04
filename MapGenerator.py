@@ -118,6 +118,7 @@ while (answer[0].isdigit() or not answer.replace('_', '').isalnum()):
 # combine to creat the mapping line
 new_mapping = answer + " = " + new_mapping
 
+print("\n\n", new_mapping, "\n\n this is the mapping you created, feel free to copy this into input mappings manually or ")
 
 # inserts the new mapping into the python file
 do_auto_insert = input("\ntype \"yes\" if you would you like to have this map automatically added to the existing input mappings\n> ")
