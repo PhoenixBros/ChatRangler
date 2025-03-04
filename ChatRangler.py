@@ -229,11 +229,11 @@ twitch_listener.start()
 rando_active = False
 rando_event = pg.event.custom_type()
 def rando():
-    avalable_commands = list(StoredMappings.active_commands.keys())
+    avalable_commands = list(active_chat_profile.keys())
     while rando_active:
         if chat_active:
             time.sleep(.1)
-            chat_event_queue.put(deepcopy(StoredMappings.active_commands[random.choice(avalable_commands)]))
+            chat_event_queue.put(deepcopy(active_chat_profile[random.choice(avalable_commands)]))
         
     print("Rando has died D:")
 
@@ -263,7 +263,7 @@ def debugger_chat():
             con_name_list = [joy.get_name() for joy in joysticks]
             print("connected joysticks", con_name_list)
             
-            con = input("type the number or name of the controller you wish to use (type \"none\" disconnect)\n>").lower()
+            con = input("type the index or name of the controller you wish to use (type \"none\" disconnect)\n>").lower()
             if con.isdigit():
                 index = int(con)
                 if index in range(len(joysticks)):
@@ -272,7 +272,7 @@ def debugger_chat():
                     print("connected to:", joysticks[index].get_name())
                 else:
                     print("no con at index:", index)
-            elif con in con_name_list:
+            elif con.lower() in con_name_list:
                 joyce = joysticks[con_name_list.index(con)]
                 joyce_mapping = InputMapping.get_mapping(joyce.get_name())
                 print("now connected to:", con)
@@ -394,6 +394,7 @@ print("\n\n\n\n\n\n\n\n- - - - - - Welcome to chat rangler - - - - - - \nto list
 
 print("connected controllers:", [joy.get_name() for joy in joysticks])
 print("active con = ", None if joyce == None else joyce.get_name())
+reset_hybrid()
 while run:
     update_controller()
     
@@ -481,7 +482,8 @@ while run:
             
             
 if Twitch.sock:
-    Twitch.disconnect()
+    Twitch.sock = None
     
+reset_hybrid()
 
 print("- - - - - - Exiting Chat Rangler - - - - - - \nThank you for using Chat Rangler\nHave a good day")
