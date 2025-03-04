@@ -1,5 +1,5 @@
 Description:    
-Chat Wrangler is a program that combines the inputs from chat and a lugged in controller.
+Chat Wrangler is a program that combines the inputs from chat and a connected controller.
 The result is a fun and chaotic way to play games while streaming.
 In my experience, as a small streamer, it leads to a game of fighting off the occasional malicious input.
 But i would expect that if your stream has enough viewers the experience will change drastically.
