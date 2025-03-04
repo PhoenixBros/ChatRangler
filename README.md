@@ -30,10 +30,24 @@ install the needed libraries:
   - pip install vgamepad
   - dowload TwitchPlays_Connection.py from https://github.com/DougDougGithub/TwitchPlays
     - pip install requests
-Once you have this repo downloaded and the dependencies installed.
-Download dougs 
-Just run the file named ChatRangler.py in python 3.9 or higher
-The cmd line prompts should guide you through from there
+
+once all that is done you should be able to run the file ChatRangler.py
+follow the cmd prompts to get going
+
+if your controller is not a ps4 or an xbox360
+then you will need to create a mapping for the controller to function
+
+mapping a controller:
+you can choose to either run the generator tool or code the map yourself inside the StoredMappings.py file
+- make sure chatrangler is not running
+- plug in the controller you want to map
+- run MapGenerator.py
+- type the index of the controller from the list of recognized controllers
+mapping each button
+- press any button to choose how it gets mapped
+  - type the xbox controller button you want to map onto
+  - type the name of the conversion you wish to use, this allows the programm to convert buttons to axes, axes to buttons, or invert an axis, 
+- once you are are done inputing the mappings you need to name the mapping
+- 
 
 
-if you need to create a new mapping for the controller you are using or make a bizarre one you can write it youself or run the MapGenerator.p file to create one
