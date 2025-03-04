@@ -1,0 +1,18 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore environment files
+.env
+venv/
+*.venv
+
+# Ignore logs
+*.log
+
+# Ignore IDE files
+.vscode/
+*.swp
+
+TwitchPlays_Connection.py

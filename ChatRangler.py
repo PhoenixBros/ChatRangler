@@ -17,7 +17,7 @@ from copy import deepcopy
 
 # Default stuff to prevent the need to set it everytime you run the code
 DEFAULT_TWITCH_CHANNEL = "" # the channel that it will automatically attempt to join on start up, leave as "" to start unconnected
-CONTROLLER_AUTO_CONNECTS = ["PS4 Controller", ] # the kinds of controllers that you want to automatically use as the active controller if no active is already set
+CONTROLLER_AUTO_CONNECTS = ["PS4 Controller", "Xbox 360 Controller"] # the kinds of controllers that you want to automatically use as the active controller if no active is already set
 DEFAULT_CHAT_COMMANDS = "simple" # the chat commands profile to initilize with
 
 # how the inputs are combined
