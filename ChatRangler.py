@@ -55,6 +55,7 @@ time.sleep(.01)
 gamepad.release_button(vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
 gamepad.update()
 
+time.sleep(.1)
 for event in pg.event.get(): pass # workaround to avoid the virtual gamepad getting detected as a joystick
     
 
