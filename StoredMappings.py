@@ -109,6 +109,10 @@ xbox360_map = {'BUTTON': { 0: {'input': xbox_valid_inputs.A, "convert":conversio
 # defualt mapping for ps4 controller
 ps4_map = {'BUTTON': { 0: {'input': xbox_valid_inputs.A, "convert":conversions['pass']}, 1: {'input': xbox_valid_inputs.B, "convert":conversions['pass']}, 2: {'input': xbox_valid_inputs.X, "convert":conversions['pass']}, 3: {'input': xbox_valid_inputs.Y, "convert":conversions['pass']}, 6: {'input': xbox_valid_inputs.START, "convert":conversions['pass']}, 5: {'input': xbox_valid_inputs.GUIDE, "convert":conversions['pass']}, 4: {'input': xbox_valid_inputs.BACK, "convert":conversions['pass']}, 11: {'input': xbox_valid_inputs.DPAD_UP, "convert":conversions['pass']}, 12: {'input': xbox_valid_inputs.DPAD_DOWN, "convert":conversions['pass']}, 13: {'input': xbox_valid_inputs.DPAD_LEFT, "convert":conversions['pass']}, 14: {'input': xbox_valid_inputs.DPAD_RIGHT, "convert":conversions['pass']}, 15: {'input': xbox_valid_inputs.BACK, "convert":conversions['pass']}, 9: {'input': xbox_valid_inputs.BUMPER_LEFT, "convert":conversions['pass']}, 10: {'input': xbox_valid_inputs.BUMPER_RIGHT, "convert":conversions['pass']}, 7: {'input': xbox_valid_inputs.THUMB_LEFT, "convert":conversions['pass']}, 8: {'input': xbox_valid_inputs.THUMB_RIGHT, "convert":conversions['pass']}},'AXIS': { 0: {'input': xbox_valid_inputs.STICK_LEFT_X, "convert":conversions['pass']}, 1: {'input': xbox_valid_inputs.STICK_LEFT_Y, "convert":conversions['-a']}, 2: {'input': xbox_valid_inputs.STICK_RIGHT_X, "convert":conversions['pass']}, 3: {'input': xbox_valid_inputs.STICK_RIGHT_Y, "convert":conversions['-a']}, 4: {'input': xbox_valid_inputs.TRIGGER_LEFT, "convert":conversions['pass']},5: {'input': xbox_valid_inputs.TRIGGER_RIGHT, "convert":conversions['pass']}},}
 
+# gamecube adapted controller
+GameCube_Controller = {'BUTTON': {0: {'input': xbox_valid_inputs.A, 'convert': conversions['pass']}, 1: {'input': xbox_valid_inputs.B, 'convert': conversions['pass']}, 2: {'input': xbox_valid_inputs.Y, 'convert': conversions['pass']}, 3: {'input': xbox_valid_inputs.X, 'convert': conversions['pass']}, 4: {'input': xbox_valid_inputs.DPAD_LEFT, 'convert': conversions['pass']}, 5: {'input': xbox_valid_inputs.DPAD_RIGHT, 'convert': conversions['pass']}, 6: {'input': xbox_valid_inputs.DPAD_DOWN, 'convert': conversions['pass']}, 7: {'input': xbox_valid_inputs.DPAD_UP, 'convert': conversions['pass']}, 8: {'input': xbox_valid_inputs.START, 'convert': conversions['pass']}, 9: {'input': xbox_valid_inputs.BUMPER_RIGHT, 'convert': conversions['pass']}}, 'AXIS': {0: {'input': xbox_valid_inputs.STICK_LEFT_X, 'convert': conversions['pass']}, 1: {'input': xbox_valid_inputs.STICK_LEFT_Y, 'convert': conversions['pass']}, 2: {'input': xbox_valid_inputs.STICK_RIGHT_X, 'convert': conversions['pass']}, 3: {'input': xbox_valid_inputs.STICK_RIGHT_Y, 'convert': conversions['pass']}, 4: {'input': xbox_valid_inputs.TRIGGER_LEFT, 'convert': conversions['pass']}, 5: {'input': xbox_valid_inputs.TRIGGER_LEFT, 'convert': conversions['pass']}}
+                                
+                                }
 ######################
 # custom built mappings
 # feel free to write your own mappings here
@@ -124,6 +128,7 @@ controller_mappings = {
     "none":emptymap, 
     "xbox 360 controller":xbox360_map, 
     "ps4 controller":ps4_map,
+    "Nintendo GameCube Controller":GameCube_Controller,
     
     # custom built mappings
     
