@@ -55,6 +55,7 @@ time.sleep(.01)
 gamepad.release_button(vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
 gamepad.update()
 
+time.sleep(.1)
 for event in pg.event.get(): pass # workaround to avoid the virtual gamepad getting detected as a joystick
     
 
@@ -248,6 +249,7 @@ info_dict = {'con connect':"lets you choose the active controller", 'con mapping
              'start':"starts the sytsem listening to all chat messages, this includes rando and cmd messages", 'stop':"stop the system from listening to messages",
              'rando start':"starts randomly sending valid chat messages (note: only works when started)", 'rando stop':"",
              'help':"this is what you just typed\n this gives hints about each of the commands", 'quit':"this exits the program gracefully"}
+
 # command line input processor
 def debugger_chat():
     global run, joyce, joyce_mapping, chat_active, rando_active, active_chat_profile
@@ -261,7 +263,7 @@ def debugger_chat():
         # sets the active controller
         if msg == "con connect":
             con_name_list = [joy.get_name() for joy in joysticks]
-            print("connected joysticks", con_name_list)
+            print("connected joysticks", [(i, joysticks[i].get_name()) for i in range(len(joysticks))])
             
             con = input("type the index or name of the controller you wish to use (type \"none\" disconnect)\n>").lower()
             if con.isdigit():
@@ -443,22 +445,47 @@ while run:
             if joyce != None and joyce_mapping != None and event.instance_id == joyce.get_instance_id():
                 # map to xbox controller
                 action = InputMapping.apply_input_mapping(joyce_mapping, 'BUTTON', event.button)
-                value = InputMapping.apply_value_mapping(joyce_mapping, 'BUTTON', event.button, True if event.type == pg.JOYBUTTONDOWN else False)
+                value = InputMapping.apply_value_mapping(action, True if event.type == pg.JOYBUTTONDOWN else False)
                 
                 if action != None and value != None:
                     with hybrid_lock:
-                        hybrid_controller[action['id']]['player'] = value
+                        hybrid_controller[action['input']['id']]['player'] = value
                  
         # Axis changed
         elif event.type == pg.JOYAXISMOTION:
             if joyce != None and joyce_mapping != None and event.instance_id == joyce.get_instance_id():
                 action = InputMapping.apply_input_mapping(joyce_mapping, 'AXIS', event.axis)
-                value = InputMapping.apply_value_mapping(joyce_mapping, 'AXIS', event.axis, event.value)
+                value = InputMapping.apply_value_mapping(action, event.value)
                     
                 if action != None and value != None:
                     with hybrid_lock:
-                        hybrid_controller[action['id']]['player'] = value
+                        hybrid_controller[action['input']['id']]['player'] = value
+        
+        # Hat motion #?NOTE this has not been tested using a real controller. its contstructed from the documentation and manual tests
+        elif event.type == pg.JOYHATMOTION:
+            if joyce != None and joyce_mapping != None and event.instance_id == joyce.get_instance_id():
+                action = InputMapping.apply_input_mapping(joyce_mapping, 'HAT', event.hat)                
+                if action != None:
+                    
+                    for axis in ['X','Y']:
+                        ind = 0 if axis == 'X' else 1
+                        if isinstance(action[axis], tuple):
+                            
+                            for i in [0,1]:
+                                flip = 1 if event.value[ind] == 2*i-1 else 0
+                                v = InputMapping.apply_value_mapping(action[axis][i], flip)
+                                if v != None:
+                                    with hybrid_lock:
+                                        hybrid_controller[action[axis][i]['input']['id']]['player'] = v
+                        else:
+                            v = InputMapping.apply_value_mapping(action[axis], event.value[ind])
+                            with hybrid_lock:
+                                        hybrid_controller[action[axis]['input']['id']]['player'] = v
+                            
+                    
             
+        # ----------------------
+        # chat input handling
         # Chat event handling
         elif event.type == chat_event:
             if chat_active:
@@ -467,7 +494,14 @@ while run:
                 action = event_dict['input']
                 with hybrid_lock:
                     hybrid_controller[action['id']]['chat'] = event_dict['value']
-            
+        
+        # chat disconnect
+        elif event.type == connection_event:
+            event_dict = event.__dict__
+            if event_dict['state'] == "disconnected":
+                Twitch.reconnect()
+        
+        # rando chater
         elif event.type == rando_event:
             if rando_active:
                 event_dict = event.__dict__['action']
@@ -475,11 +509,7 @@ while run:
                 action = event_dict['input']
                 with hybrid_lock:
                     hybrid_controller[action['id']]['chat'] = event_dict['value']
-        
-        elif event.type == connection_event:
-            event_dict = event.__dict__
-            if event_dict['state'] == "disconnected":
-                Twitch.reconnect()
+
             
             
 if Twitch.sock:
