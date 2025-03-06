@@ -6,29 +6,34 @@ pg.init()
 
 
 xbox_options = {
-    'a': ["~xbox_valid_inputs.A~", bool],
-    'b': ["~xbox_valid_inputs.B~", bool],
-    'x': ["~xbox_valid_inputs.X~", bool],
-    'y': ["~xbox_valid_inputs.Y~", bool],
-    'back': ["~xbox_valid_inputs.BACK~", bool],
-    'start': ["~xbox_valid_inputs.START~", bool],
-    'guide': ["~xbox_valid_inputs.GUIDE~", bool],
-    'dpad u': ["~xbox_valid_inputs.DPAD_UP~", bool],
-    'dpad d': ["~xbox_valid_inputs.DPAD_DOWN~", bool],
-    'dpad l': ["~xbox_valid_inputs.DPAD_LEFT~", bool],
-    'dpad r': ["~xbox_valid_inputs.DPAD_RIGHT~", bool],
-    'l bumper': ["~xbox_valid_inputs.BUMPER_LEFT~", bool],
-    'r bumper': ["~xbox_valid_inputs.BUMPER_RIGHT~", bool],
-    'l thumb': ["~xbox_valid_inputs.THUMB_LEFT~", bool],
-    'r thumb': ["~xbox_valid_inputs.THUMB_RIGHT~", bool],
-    
-    'l stick x': ["~xbox_valid_inputs.STICK_LEFT_X~", float],
-    'l stick y': ["~xbox_valid_inputs.STICK_LEFT_Y~", float],
-    'r stick x': ["~xbox_valid_inputs.STICK_RIGHT_X~", float],
-    'r stick y': ["~xbox_valid_inputs.STICK_RIGHT_Y~", float],
-    'l trigger': ["~xbox_valid_inputs.TRIGGER_LEFT~", float],
-    'r trigger': ["~xbox_valid_inputs.TRIGGER_RIGHT~", float],
+    'BUTTON': {
+        'a': ["~xbox_valid_inputs.A~", bool],
+        'b': ["~xbox_valid_inputs.B~", bool],
+        'x': ["~xbox_valid_inputs.X~", bool],
+        'y': ["~xbox_valid_inputs.Y~", bool],
+        'back': ["~xbox_valid_inputs.BACK~", bool],
+        'start': ["~xbox_valid_inputs.START~", bool],
+        'guide': ["~xbox_valid_inputs.GUIDE~", bool],
+        'dpad u': ["~xbox_valid_inputs.DPAD_UP~", bool],
+        'dpad d': ["~xbox_valid_inputs.DPAD_DOWN~", bool],
+        'dpad l': ["~xbox_valid_inputs.DPAD_LEFT~", bool],
+        'dpad r': ["~xbox_valid_inputs.DPAD_RIGHT~", bool],
+        'l bumper': ["~xbox_valid_inputs.BUMPER_LEFT~", bool],
+        'r bumper': ["~xbox_valid_inputs.BUMPER_RIGHT~", bool],
+        'l thumb': ["~xbox_valid_inputs.THUMB_LEFT~", bool],
+        'r thumb': ["~xbox_valid_inputs.THUMB_RIGHT~", bool],
+    },
+    'AXIS': {
+        'l stick x': ["~xbox_valid_inputs.STICK_LEFT_X~", float],
+        'l stick y': ["~xbox_valid_inputs.STICK_LEFT_Y~", float],
+        'r stick x': ["~xbox_valid_inputs.STICK_RIGHT_X~", float],
+        'r stick y': ["~xbox_valid_inputs.STICK_RIGHT_Y~", float],
+        'l trigger': ["~xbox_valid_inputs.TRIGGER_LEFT~", float],
+        'r trigger': ["~xbox_valid_inputs.TRIGGER_RIGHT~", float],
+    }
 }
+
+
 
 
 joyce = None
@@ -51,7 +56,7 @@ joyce = joysticks[int(answer)]
 WIP_map_inputs = {
     'BUTTON':{i:None for i in range(joyce.get_numbuttons())},
     'AXIS':{i:None for i in range(joyce.get_numaxes())},
-    'HAT':{i:None for i in range(joyce.get_numhats())},
+    'HAT':{i:{} for i in range(joyce.get_numhats())},
     'BALL':{i:None for i in range(joyce.get_numballs())},
 }
 
@@ -74,25 +79,77 @@ if answer == "map":
                 if abs(event.value) > .5:
                     current_selection = ["AXIS", event.axis, float]
             elif event.type == pg.JOYHATMOTION and event.instance_id == joyce.get_instance_id():
-                print(event)
-                current_selection = ["HAT", event.hat, float]
+                current_selection = ["HAT", event.hat, int, event.value]
             elif event.type == pg.JOYBALLMOTION and event.instance_id == joyce.get_instance_id():
-                print(event)
-                current_selection = ["BALL", event.value, float] # i dont have access to a ball type input so figure its out yourself
+
+                current_selection = ["BALL", event.value, float] # i dont have access to a ball type input so figure it out yourself
                 
         if current_selection != None:
-            print("please type the input you would like to map", current_selection, "to\n avalable options are:", list(xbox_options.keys()))
-            while answer not in xbox_options.keys():
-                answer = input("> ")
-            xboxkey = xbox_options[answer]
-            
-            answer = ''
-            print("choose a convertion: ", get_avalable_conversions(current_selection[2], xboxkey[1]))
-            while answer not in get_avalable_conversions(current_selection[2], xboxkey[1]):
-                answer = input('> ')
+            if current_selection[0] in ["BUTTON, AXIS"]:
+                print("please type the input you would like to map", current_selection, "to\n avalable options are:", list(xbox_options.items()))
+                while answer not in xbox_options.items():
+                    answer = input("> ")
+                    
+                t = "BUTTON" if answer in xbox_options["BUTTON"].keys() else "AXIS"
+                xboxkey = xbox_options[t][answer]
                 
-            WIP_map_inputs[current_selection[0]][current_selection[1]] = {'input':xboxkey[0], 'convert':f"~conversions['{answer}']~"}
-            
+                answer = ''
+                print("choose a convertion: ", get_avalable_conversions(current_selection[2], xboxkey[1]))
+                while answer not in get_avalable_conversions(current_selection[2], xboxkey[1]):
+                    answer = input('> ')
+                    
+                WIP_map_inputs[current_selection[0]][current_selection[1]] = {'input':xboxkey[0], 'convert':f"~conversions['{answer}']~"}
+                
+            else:
+                answer = ''
+                print("you have selected a hat,", current_selection, "would you like to map this hat axis to 2 buttons or to an axis? (b/a)")
+                while answer not in ['b', 'a']:
+                    answer = input('>')
+                
+                WIP_map_inputs
+                
+                if answer == 'a':
+                    print("please type the axis you would like to map to, from this selection", list(xbox_options['AXIS'].keys()))
+                    answer = ''
+                    while answer not in xbox_options['AXIS'].keys():
+                        answer = input('>')
+                        
+                    xboxkey = xbox_options['AXIS'][answer]
+                    
+                    print("choose a convertion: ", get_avalable_conversions(current_selection[2], xboxkey[1]))
+                    while answer not in get_avalable_conversions(current_selection[2], xboxkey[1]):
+                        answer = input('> ')
+                    
+                    WIP_map_inputs[current_selection[0]][current_selection[1]]['X' if abs(current_selection[3][0]) == 1 else 'Y'] = {'input':xboxkey[0], 'convert':f"~conversions['{answer}']~"}
+                    
+                else: 
+                    answer = ''
+                    print("Please type the first button you would like to map the positive value to (up = +, down = -, left = -, right = +)\n", list((xbox_options['BUTTON'].keys())))
+                    print("Reminder: you pressed", current_selection[3])
+                    while answer not in xbox_options["BUTTON"].keys():
+                        answer = input('>')
+                        
+                    xboxkey = xbox_options['BUTTON'][answer]
+                    answer = ''
+                    
+                    print("choose a convertion: ", get_avalable_conversions(current_selection[2], xboxkey[1]))
+                    while answer not in get_avalable_conversions(current_selection[2], xboxkey[1]):
+                        answer = input('> ')
+                    
+                    hold = {'input':xboxkey[0], 'convert':f"~conversions['{answer}']~"}
+                    answer = ''
+                    
+                    print("Please type the second button you would like to map the negative value to (up = +, down = -, left = -, right = +)\n", list(xbox_options['BUTTON'].keys()))
+                    while answer not in xbox_options["BUTTON"].keys():
+                        answer = input('>')
+                    print("choose a convertion: ", get_avalable_conversions(current_selection[2], xboxkey[1]))
+                    while answer not in get_avalable_conversions(current_selection[2], xboxkey[1]):
+                        answer = input('> ')
+                    
+                    WIP_map_inputs[current_selection[0]][current_selection[1]]['X' if abs(current_selection[3][0]) == 1 else 'Y'] = (hold, {'input':xboxkey[0], 'convert':f"~conversions['{answer}']~"})
+                    
+                
+                
             print("current input map:", WIP_map_inputs)
             answer = input("\nwould you like to keep mapping? if not type 'done'\n> ")
 
@@ -106,7 +163,7 @@ if answer == "map":
     #removes all controllers non set inputs
     for key in input_guide.keys():
         for index in input_guide[key].keys():
-            if input_guide[key][index] == None:
+            if input_guide[key][index] == None or input_guide[key][index] == {}:
                 WIP_map_inputs[key].pop(index)
                 
     #convert to copyable string and remove all incorrect quotes    

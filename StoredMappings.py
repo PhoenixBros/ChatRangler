@@ -100,7 +100,7 @@ def get_avalable_conversions(t1:type, t2:type) -> list:
 #   },
 #   'HAT': { 
 #       id:{
-#           'X': {'input':xbox_valid_inputs, 'convert':function,                                                         # if its a axis convertion the value converts directly
+#           'X': {'input':xbox_valid_inputs, 'convert':function},                                                        # if its a axis convertion the value converts directly
 #           'Y': ({'input':xbox_valid_inputs, 'convert':function}, {'input':xbox_valid_inputs, 'convert':function}),     # if its a button convertion its a tuple of 2 convertions (god i hate the hat)
 #       }
 #   },
@@ -112,12 +112,6 @@ def get_avalable_conversions(t1:type, t2:type) -> list:
 
 ######################
 # Pre built mappings
-
-# hatdebugmap = {'HAT': { 0:{ 
-#                     'X': ({'input': xbox_valid_inputs.DPAD_RIGHT, "convert":conversions['h -> b']}, {'input': xbox_valid_inputs.DPAD_LEFT, "convert":conversions['h -> b']}),
-#                     'Y': ({'input': xbox_valid_inputs.DPAD_UP, "convert":conversions['h -> b']}, {'input': xbox_valid_inputs.DPAD_DOWN, "convert":conversions['h -> b']}),
-#                 }}}
-
 
 # this mapping is the defualt and wont do anything
 emptymap = {'BUTTON':{},
@@ -158,7 +152,7 @@ controller_mappings = {
     "xbox 360 controller":xbox360_map, 
     "ps4 controller":ps4_map,
     "nintendo gamecube controller":gamecube_map,
-    
+
     # custom built mappings
     
     # MapGenerator mappings
