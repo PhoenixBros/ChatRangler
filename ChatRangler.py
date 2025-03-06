@@ -256,14 +256,6 @@ def debugger_chat():
     while run:
         msg = input().lower()
         
-        # hat debugging
-        if msg.startswith("hat "):
-            v = msg.split(" ")[1].split(',')
-            v = (int(v[0]), int(v[1]))
-            with event_lock:
-                pg.event.post(pg.event.Event(pg.JOYHATMOTION, {'instance_id':joyce.get_instance_id(), 'joy':0, 'hat':0, 'value':v}))
-            
-        
         if msg == "list":
             print("Avalable commands are:\n#### Controller commands ####\n- con connect\n- con mapping\n- con check\n- mapping check\n#### Twitch chat commands ####\n- chat connect\n- chat disconnect\n- chat profile\n- All valid chat commands (hints:'help chat')\n#### System commands ####\n- start\n- stop\n- help [command]\n- quit")
         
