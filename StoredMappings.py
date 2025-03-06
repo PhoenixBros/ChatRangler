@@ -43,21 +43,31 @@ conversions = {
     "-b" : lambda x : not x, # bool to bool
     "b -> +a": lambda x : 1.0 if x else 0.0, # bool to float
     "b -> -a": lambda x : -1.0 if x else 0.0, # bool to float
+    "b -> 1": lambda x : 1.0 , # bool to 1 (only really used for the bottom out button off the gamecube bumpers)
+    "b -> -1": lambda x : -1.0 , # bool to -1
     "a -> b": lambda x : True if abs(x) > .5 else False, # float to bool
     "a -> -b": lambda x : False if abs(x) > .5 else True, # float to bool
     "-a": lambda x : -x, # float to float
     "a -> [0,1]": lambda x : (x+1)/2, # flaot to float
+    "h -> b": lambda x : True if abs(x) == 1 else False, # int to bool
+    "h -> -b": lambda x : False if abs(x) == 1 else True, # int to bool
+    "h -> a": lambda x  : float(x), # int to float
+    "h -> -a": lambda x  : -float(x), # int to float
 }
 
 # a lookup table for legal conversions
 con_type_lookup = {
     bool:{
         bool:['pass', '-b'],
-        float:['b -> +a', 'b -> -a'],
+        float:['b -> +a', 'b -> -a']
     },
     float:{
         float:['pass', '-a', 'a -> [0,1]'],
-        bool:['a -> b', 'a -> -b'],
+        bool:['a -> b', 'a -> -b']
+    },
+    int:{
+        bool:['h -> b', 'h -> -b'],
+        float:["h -> a", "h -> -a"]
     }
 }
 
@@ -83,16 +93,19 @@ def get_avalable_conversions(t1:type, t2:type) -> list:
 # maps are stuctured like this:
 # name =  {
 #   'BUTTON': {
-#       id: {'input:xbox_valid_inputs, 'convert':function}
+#       id: {'input':xbox_valid_inputs, 'convert':function},
 #   },
 #   'AXIS': {
-#       id: {'input:xbox_valid_inputs, 'convert':function}
+#       id: {'input':xbox_valid_inputs, 'convert':function},
 #   },
-#   'BUTTON': {
-#       id: {'input:xbox_valid_inputs, 'convert':function}
+#   'HAT': { 
+#       id:{
+#           'X': {'input':xbox_valid_inputs, 'convert':function,                                                         # if its a axis convertion the value converts directly
+#           'Y': ({'input':xbox_valid_inputs, 'convert':function}, {'input':xbox_valid_inputs, 'convert':function}),     # if its a button convertion its a tuple of 2 convertions (god i hate the hat)
+#       }
 #   },
-#   'BUTTON': {
-#       id: {'input:xbox_valid_inputs, 'convert':function}
+#   'BALL': {
+
 #   },
 # }
 
@@ -100,19 +113,35 @@ def get_avalable_conversions(t1:type, t2:type) -> list:
 ######################
 # Pre built mappings
 
+# hatdebugmap = {'HAT': { 0:{ 
+#                     'X': ({'input': xbox_valid_inputs.DPAD_RIGHT, "convert":conversions['h -> b']}, {'input': xbox_valid_inputs.DPAD_LEFT, "convert":conversions['h -> b']}),
+#                     'Y': ({'input': xbox_valid_inputs.DPAD_UP, "convert":conversions['h -> b']}, {'input': xbox_valid_inputs.DPAD_DOWN, "convert":conversions['h -> b']}),
+#                 }}}
+
+
 # this mapping is the defualt and wont do anything
-emptymap = {'BUTTON':{},'AXiS':{},'HAT':(),}
+emptymap = {'BUTTON':{},
+            'AXiS':{},
+            'HAT':(),
+            'BALL':()}
 
 # defualt mapping for xbox 360 controller
-xbox360_map = {'BUTTON': { 0: {'input': xbox_valid_inputs.A, "convert":conversions['pass']}, 1: {'input': xbox_valid_inputs.B, "convert":conversions['pass']}, 2: {'input': xbox_valid_inputs.X, "convert":conversions['pass']}, 3: {'input': xbox_valid_inputs.Y, "convert":conversions['pass']}, 4: {'input': xbox_valid_inputs.BUMPER_LEFT, "convert":conversions['pass']}, 5: {'input': xbox_valid_inputs.BUMPER_RIGHT, "convert":conversions['pass']}, 6: {'input': xbox_valid_inputs.BACK, "convert":conversions['pass']}, 7: {'input': xbox_valid_inputs.START, "convert":conversions['pass']}, 8: {'input': xbox_valid_inputs.THUMB_LEFT, "convert":conversions['pass']},9: {'input': xbox_valid_inputs.THUMB_RIGHT, "convert":conversions['pass']},10: {'input': xbox_valid_inputs.GUIDE, "convert":conversions['pass']},},'AXIS': { 0: {'input': xbox_valid_inputs.STICK_LEFT_X, "convert":conversions['pass']}, 1: {'input': xbox_valid_inputs.STICK_LEFT_Y, "convert":conversions['pass']}, 2: {'input': xbox_valid_inputs.TRIGGER_LEFT, "convert":conversions['pass']}, 3: {'input': xbox_valid_inputs.STICK_RIGHT_X, "convert":conversions['pass']}, 4: {'input': xbox_valid_inputs.STICK_RIGHT_Y, "convert":conversions['pass']}, 5: {'input': xbox_valid_inputs.TRIGGER_RIGHT, "convert":conversions['pass']},}, 'HAT': { 11: {'input': xbox_valid_inputs.DPAD_UP, "convert":conversions['pass']}, 12: {'input': xbox_valid_inputs.DPAD_DOWN, "convert":conversions['pass']}, 13: {'input': xbox_valid_inputs.DPAD_LEFT, "convert":conversions['pass']}, 14: {'input': xbox_valid_inputs.DPAD_RIGHT, "convert":conversions['pass']},}}
+xbox360_map = {'BUTTON': { 0: {'input': xbox_valid_inputs.A, "convert":conversions['pass']}, 1: {'input': xbox_valid_inputs.B, "convert":conversions['pass']}, 2: {'input': xbox_valid_inputs.X, "convert":conversions['pass']}, 3: {'input': xbox_valid_inputs.Y, "convert":conversions['pass']}, 4: {'input': xbox_valid_inputs.BUMPER_LEFT, "convert":conversions['pass']}, 5: {'input': xbox_valid_inputs.BUMPER_RIGHT, "convert":conversions['pass']}, 6: {'input': xbox_valid_inputs.BACK, "convert":conversions['pass']}, 7: {'input': xbox_valid_inputs.START, "convert":conversions['pass']}, 8: {'input': xbox_valid_inputs.THUMB_LEFT, "convert":conversions['pass']},9: {'input': xbox_valid_inputs.THUMB_RIGHT, "convert":conversions['pass']},10: {'input': xbox_valid_inputs.GUIDE, "convert":conversions['pass']},},
+               'AXIS': { 0: {'input': xbox_valid_inputs.STICK_LEFT_X, "convert":conversions['pass']}, 1: {'input': xbox_valid_inputs.STICK_LEFT_Y, "convert":conversions['-a']}, 2: {'input': xbox_valid_inputs.TRIGGER_LEFT, "convert":conversions['pass']}, 3: {'input': xbox_valid_inputs.STICK_RIGHT_X, "convert":conversions['pass']}, 4: {'input': xbox_valid_inputs.STICK_RIGHT_Y, "convert":conversions['-a']}, 5: {'input': xbox_valid_inputs.TRIGGER_RIGHT, "convert":conversions['pass']},}, 'HAT': { 11: {'input': xbox_valid_inputs.DPAD_UP, "convert":conversions['pass']}, 12: {'input': xbox_valid_inputs.DPAD_DOWN, "convert":conversions['pass']}, 13: {'input': xbox_valid_inputs.DPAD_LEFT, "convert":conversions['pass']}, 14: {'input': xbox_valid_inputs.DPAD_RIGHT, "convert":conversions['pass']},},
+               'HAT': { 0:{ 
+                    'X': ({'input': xbox_valid_inputs.DPAD_RIGHT, "convert":conversions['pass']}, {'input': xbox_valid_inputs.DPAD_LEFT, "convert":conversions['pass']}),
+                    'Y': ({'input': xbox_valid_inputs.DPAD_UP, "convert":conversions['pass']}, {'input': xbox_valid_inputs.DPAD_DOWN, "convert":conversions['pass']}),
+                    }}}
 
 # defualt mapping for ps4 controller
-ps4_map = {'BUTTON': { 0: {'input': xbox_valid_inputs.A, "convert":conversions['pass']}, 1: {'input': xbox_valid_inputs.B, "convert":conversions['pass']}, 2: {'input': xbox_valid_inputs.X, "convert":conversions['pass']}, 3: {'input': xbox_valid_inputs.Y, "convert":conversions['pass']}, 6: {'input': xbox_valid_inputs.START, "convert":conversions['pass']}, 5: {'input': xbox_valid_inputs.GUIDE, "convert":conversions['pass']}, 4: {'input': xbox_valid_inputs.BACK, "convert":conversions['pass']}, 11: {'input': xbox_valid_inputs.DPAD_UP, "convert":conversions['pass']}, 12: {'input': xbox_valid_inputs.DPAD_DOWN, "convert":conversions['pass']}, 13: {'input': xbox_valid_inputs.DPAD_LEFT, "convert":conversions['pass']}, 14: {'input': xbox_valid_inputs.DPAD_RIGHT, "convert":conversions['pass']}, 15: {'input': xbox_valid_inputs.BACK, "convert":conversions['pass']}, 9: {'input': xbox_valid_inputs.BUMPER_LEFT, "convert":conversions['pass']}, 10: {'input': xbox_valid_inputs.BUMPER_RIGHT, "convert":conversions['pass']}, 7: {'input': xbox_valid_inputs.THUMB_LEFT, "convert":conversions['pass']}, 8: {'input': xbox_valid_inputs.THUMB_RIGHT, "convert":conversions['pass']}},'AXIS': { 0: {'input': xbox_valid_inputs.STICK_LEFT_X, "convert":conversions['pass']}, 1: {'input': xbox_valid_inputs.STICK_LEFT_Y, "convert":conversions['-a']}, 2: {'input': xbox_valid_inputs.STICK_RIGHT_X, "convert":conversions['pass']}, 3: {'input': xbox_valid_inputs.STICK_RIGHT_Y, "convert":conversions['-a']}, 4: {'input': xbox_valid_inputs.TRIGGER_LEFT, "convert":conversions['pass']},5: {'input': xbox_valid_inputs.TRIGGER_RIGHT, "convert":conversions['pass']}},}
+ps4_map = {'BUTTON': { 0: {'input': xbox_valid_inputs.A, "convert":conversions['pass']}, 1: {'input': xbox_valid_inputs.B, "convert":conversions['pass']}, 2: {'input': xbox_valid_inputs.X, "convert":conversions['pass']}, 3: {'input': xbox_valid_inputs.Y, "convert":conversions['pass']}, 6: {'input': xbox_valid_inputs.START, "convert":conversions['pass']}, 5: {'input': xbox_valid_inputs.GUIDE, "convert":conversions['pass']}, 4: {'input': xbox_valid_inputs.BACK, "convert":conversions['pass']}, 11: {'input': xbox_valid_inputs.DPAD_UP, "convert":conversions['pass']}, 12: {'input': xbox_valid_inputs.DPAD_DOWN, "convert":conversions['pass']}, 13: {'input': xbox_valid_inputs.DPAD_LEFT, "convert":conversions['pass']}, 14: {'input': xbox_valid_inputs.DPAD_RIGHT, "convert":conversions['pass']}, 15: {'input': xbox_valid_inputs.BACK, "convert":conversions['pass']}, 9: {'input': xbox_valid_inputs.BUMPER_LEFT, "convert":conversions['pass']}, 10: {'input': xbox_valid_inputs.BUMPER_RIGHT, "convert":conversions['pass']}, 7: {'input': xbox_valid_inputs.THUMB_LEFT, "convert":conversions['b -> +a']}, 8: {'input': xbox_valid_inputs.THUMB_RIGHT, "convert":conversions['b -> +a']}},
+           'AXIS': { 0: {'input': xbox_valid_inputs.STICK_LEFT_X, "convert":conversions['pass']}, 1: {'input': xbox_valid_inputs.STICK_LEFT_Y, "convert":conversions['-a']}, 2: {'input': xbox_valid_inputs.STICK_RIGHT_X, "convert":conversions['pass']}, 3: {'input': xbox_valid_inputs.STICK_RIGHT_Y, "convert":conversions['-a']}, 4: {'input': xbox_valid_inputs.TRIGGER_LEFT, "convert":conversions['pass']},5: {'input': xbox_valid_inputs.TRIGGER_RIGHT, "convert":conversions['pass']}},}
 
 # gamecube adapted controller
-GameCube_Controller = {'BUTTON': {0: {'input': xbox_valid_inputs.A, 'convert': conversions['pass']}, 1: {'input': xbox_valid_inputs.B, 'convert': conversions['pass']}, 2: {'input': xbox_valid_inputs.Y, 'convert': conversions['pass']}, 3: {'input': xbox_valid_inputs.X, 'convert': conversions['pass']}, 4: {'input': xbox_valid_inputs.DPAD_LEFT, 'convert': conversions['pass']}, 5: {'input': xbox_valid_inputs.DPAD_RIGHT, 'convert': conversions['pass']}, 6: {'input': xbox_valid_inputs.DPAD_DOWN, 'convert': conversions['pass']}, 7: {'input': xbox_valid_inputs.DPAD_UP, 'convert': conversions['pass']}, 8: {'input': xbox_valid_inputs.START, 'convert': conversions['pass']}, 9: {'input': xbox_valid_inputs.BUMPER_RIGHT, 'convert': conversions['pass']}}, 'AXIS': {0: {'input': xbox_valid_inputs.STICK_LEFT_X, 'convert': conversions['pass']}, 1: {'input': xbox_valid_inputs.STICK_LEFT_Y, 'convert': conversions['pass']}, 2: {'input': xbox_valid_inputs.STICK_RIGHT_X, 'convert': conversions['pass']}, 3: {'input': xbox_valid_inputs.STICK_RIGHT_Y, 'convert': conversions['pass']}, 4: {'input': xbox_valid_inputs.TRIGGER_LEFT, 'convert': conversions['pass']}, 5: {'input': xbox_valid_inputs.TRIGGER_LEFT, 'convert': conversions['pass']}}
-                                
-                                }
+gamecube_map = {'BUTTON': {0: {'input': xbox_valid_inputs.A, 'convert': conversions['pass']}, 1: {'input': xbox_valid_inputs.B, 'convert': conversions['pass']}, 2: {'input': xbox_valid_inputs.Y, 'convert': conversions['pass']}, 3: {'input': xbox_valid_inputs.X, 'convert': conversions['pass']}, 4: {'input': xbox_valid_inputs.DPAD_LEFT, 'convert': conversions['pass']}, 5: {'input': xbox_valid_inputs.DPAD_RIGHT, 'convert': conversions['pass']}, 6: {'input': xbox_valid_inputs.DPAD_DOWN, 'convert': conversions['pass']}, 7: {'input': xbox_valid_inputs.DPAD_UP, 'convert': conversions['pass']}, 8: {'input': xbox_valid_inputs.START, 'convert': conversions['pass']}, 9: {'input': xbox_valid_inputs.BUMPER_RIGHT, 'convert': conversions['pass']}, 10: {'input': xbox_valid_inputs.TRIGGER_RIGHT, 'convert': conversions['b -> 1']}, 11: {'input': xbox_valid_inputs.TRIGGER_LEFT, 'convert': conversions['b -> 1']}}, 
+                'AXIS': {0: {'input': xbox_valid_inputs.STICK_LEFT_X, 'convert': conversions['pass']}, 1: {'input': xbox_valid_inputs.STICK_LEFT_Y, 'convert': conversions['-a']}, 2: {'input': xbox_valid_inputs.STICK_RIGHT_X, 'convert': conversions['pass']}, 3: {'input': xbox_valid_inputs.STICK_RIGHT_Y, 'convert': conversions['-a']}, 4: {'input': xbox_valid_inputs.TRIGGER_LEFT, 'convert': conversions['pass']}, 5: {'input': xbox_valid_inputs.TRIGGER_RIGHT, 'convert': conversions['pass']}}}
+
+
 ######################
 # custom built mappings
 # feel free to write your own mappings here
@@ -128,7 +157,7 @@ controller_mappings = {
     "none":emptymap, 
     "xbox 360 controller":xbox360_map, 
     "ps4 controller":ps4_map,
-    "Nintendo GameCube Controller":GameCube_Controller,
+    "nintendo gamecube controller":gamecube_map,
     
     # custom built mappings
     

@@ -17,7 +17,7 @@ from copy import deepcopy
 
 # Default stuff to prevent the need to set it everytime you run the code
 DEFAULT_TWITCH_CHANNEL = "" # the channel that it will automatically attempt to join on start up, leave as "" to start unconnected
-CONTROLLER_AUTO_CONNECTS = ["PS4 Controller", "Xbox 360 Controller"] # the kinds of controllers that you want to automatically use as the active controller if no active is already set
+CONTROLLER_AUTO_CONNECTS = ["PS4 Controller", "Xbox 360 Controller", "Nintendo GameCube Controller"] # the kinds of controllers that you want to automatically use as the active controller if no active is already set
 DEFAULT_CHAT_COMMANDS = "simple" # the chat commands profile to initilize with
 
 # how the inputs are combined
@@ -249,11 +249,20 @@ info_dict = {'con connect':"lets you choose the active controller", 'con mapping
              'start':"starts the sytsem listening to all chat messages, this includes rando and cmd messages", 'stop':"stop the system from listening to messages",
              'rando start':"starts randomly sending valid chat messages (note: only works when started)", 'rando stop':"",
              'help':"this is what you just typed\n this gives hints about each of the commands", 'quit':"this exits the program gracefully"}
+
 # command line input processor
 def debugger_chat():
     global run, joyce, joyce_mapping, chat_active, rando_active, active_chat_profile
     while run:
         msg = input().lower()
+        
+        # hat debugging
+        if msg.startswith("hat "):
+            v = msg.split(" ")[1].split(',')
+            v = (int(v[0]), int(v[1]))
+            with event_lock:
+                pg.event.post(pg.event.Event(pg.JOYHATMOTION, {'instance_id':joyce.get_instance_id(), 'joy':0, 'hat':0, 'value':v}))
+            
         
         if msg == "list":
             print("Avalable commands are:\n#### Controller commands ####\n- con connect\n- con mapping\n- con check\n- mapping check\n#### Twitch chat commands ####\n- chat connect\n- chat disconnect\n- chat profile\n- All valid chat commands (hints:'help chat')\n#### System commands ####\n- start\n- stop\n- help [command]\n- quit")
@@ -262,7 +271,7 @@ def debugger_chat():
         # sets the active controller
         if msg == "con connect":
             con_name_list = [joy.get_name() for joy in joysticks]
-            print("connected joysticks", con_name_list)
+            print("connected joysticks", [(i, joysticks[i].get_name()) for i in range(len(joysticks))])
             
             con = input("type the index or name of the controller you wish to use (type \"none\" disconnect)\n>").lower()
             if con.isdigit():
@@ -444,22 +453,47 @@ while run:
             if joyce != None and joyce_mapping != None and event.instance_id == joyce.get_instance_id():
                 # map to xbox controller
                 action = InputMapping.apply_input_mapping(joyce_mapping, 'BUTTON', event.button)
-                value = InputMapping.apply_value_mapping(joyce_mapping, 'BUTTON', event.button, True if event.type == pg.JOYBUTTONDOWN else False)
+                value = InputMapping.apply_value_mapping(action, True if event.type == pg.JOYBUTTONDOWN else False)
                 
                 if action != None and value != None:
                     with hybrid_lock:
-                        hybrid_controller[action['id']]['player'] = value
+                        hybrid_controller[action['input']['id']]['player'] = value
                  
         # Axis changed
         elif event.type == pg.JOYAXISMOTION:
             if joyce != None and joyce_mapping != None and event.instance_id == joyce.get_instance_id():
                 action = InputMapping.apply_input_mapping(joyce_mapping, 'AXIS', event.axis)
-                value = InputMapping.apply_value_mapping(joyce_mapping, 'AXIS', event.axis, event.value)
+                value = InputMapping.apply_value_mapping(action, event.value)
                     
                 if action != None and value != None:
                     with hybrid_lock:
-                        hybrid_controller[action['id']]['player'] = value
+                        hybrid_controller[action['input']['id']]['player'] = value
+        
+        # Hat motion #?NOTE this has not been tested using a real controller. its contstructed from the documentation and manual tests
+        elif event.type == pg.JOYHATMOTION:
+            if joyce != None and joyce_mapping != None and event.instance_id == joyce.get_instance_id():
+                action = InputMapping.apply_input_mapping(joyce_mapping, 'HAT', event.hat)                
+                if action != None:
+                    
+                    for axis in ['X','Y']:
+                        ind = 0 if axis == 'X' else 1
+                        if isinstance(action[axis], tuple):
+                            
+                            for i in [0,1]:
+                                flip = 1 if event.value[ind] == 2*i-1 else 0
+                                v = InputMapping.apply_value_mapping(action[axis][i], flip)
+                                if v != None:
+                                    with hybrid_lock:
+                                        hybrid_controller[action[axis][i]['input']['id']]['player'] = v
+                        else:
+                            v = InputMapping.apply_value_mapping(action[axis], event.value[ind])
+                            with hybrid_lock:
+                                        hybrid_controller[action[axis]['input']['id']]['player'] = v
+                            
+                    
             
+        # ----------------------
+        # chat input handling
         # Chat event handling
         elif event.type == chat_event:
             if chat_active:
@@ -468,7 +502,14 @@ while run:
                 action = event_dict['input']
                 with hybrid_lock:
                     hybrid_controller[action['id']]['chat'] = event_dict['value']
-            
+        
+        # chat disconnect
+        elif event.type == connection_event:
+            event_dict = event.__dict__
+            if event_dict['state'] == "disconnected":
+                Twitch.reconnect()
+        
+        # rando chater
         elif event.type == rando_event:
             if rando_active:
                 event_dict = event.__dict__['action']
@@ -476,11 +517,7 @@ while run:
                 action = event_dict['input']
                 with hybrid_lock:
                     hybrid_controller[action['id']]['chat'] = event_dict['value']
-        
-        elif event.type == connection_event:
-            event_dict = event.__dict__
-            if event_dict['state'] == "disconnected":
-                Twitch.reconnect()
+
             
             
 if Twitch.sock:
